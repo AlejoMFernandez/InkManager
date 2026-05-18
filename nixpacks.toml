@@ -1,0 +1,15 @@
+# Railway / Nixpacks build config — InkManager
+# PHP 8.2 con extensiones PDO MySQL + fileinfo (para uploads)
+
+providers = ["php"]
+
+[phases.setup]
+nixPkgs = ["php82", "php82Extensions.pdo", "php82Extensions.pdo_mysql", "php82Extensions.fileinfo", "php82Extensions.session"]
+
+[phases.build]
+# Asegura que la carpeta de uploads exista (filesystem ephemeral pero al menos arranca)
+cmds = ["mkdir -p public/assets/uploads"]
+
+[start]
+# Built-in server de PHP, doc-root = public/, router = public/index.php
+cmd = "php -S 0.0.0.0:$PORT -t public public/index.php"

@@ -1,0 +1,21 @@
+# ── Secrets / local config ─────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Uploads (regen en deploy) ──────────────────────
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep
+
+# ── PHP / IDE ──────────────────────────────────────
+/vendor/
+*.log
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ── Local DB dumps ─────────────────────────────────
+*.sql.bak
+*.sqlite
+*.sqlite3
