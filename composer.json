@@ -1,0 +1,19 @@
+{
+    "name": "inkmanager/studio",
+    "description": "InkManager — Tattoo studio management with 3D body map",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-fileinfo": "*",
+        "ext-session": "*",
+        "ext-json": "*"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2"
+        }
+    }
+}
