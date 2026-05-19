@@ -21,6 +21,11 @@ function loadEnv(string $path): void {
 }
 loadEnv(__DIR__ . '/.env');
 
+// Inyectar vars del proceso (Railway no usa .env — variables_order default no las trae a $_ENV)
+foreach (getenv() as $k => $v) {
+    if (!isset($_ENV[$k])) $_ENV[$k] = $v;
+}
+
 // ── Token-gate en producción ────────────────────────────────────
 $isProd = ($_ENV['APP_ENV'] ?? 'local') !== 'local';
 if ($isProd) {

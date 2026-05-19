@@ -16,6 +16,11 @@ function loadEnv(string $path): void
 
 loadEnv(ROOT_PATH . '/.env');
 
+// Inyectar vars del proceso (Railway no usa .env)
+foreach (getenv() as $k => $v) {
+    if (!isset($_ENV[$k])) $_ENV[$k] = $v;
+}
+
 // ── Railway-style MYSQL_URL parsing ──────────────────────────────
 // Railway / Heroku publican MYSQL_URL = mysql://user:pass@host:port/dbname
 if (!empty($_ENV['MYSQL_URL'])) {
