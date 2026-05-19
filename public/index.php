@@ -34,12 +34,20 @@ spl_autoload_register(static function (string $class): void {
 });
 
 // ── Load .env early (for BASE_URL override + DB env on bootstrap) ─────────────
+// Local (XAMPP) usa .env. Railway/prod usa vars del proceso (getenv).
+// PHP's built-in server NO popula $_ENV automáticamente con vars del proceso
+// (variables_order = "GPCS" por default), así que las traemos a mano de getenv().
 if (file_exists(ROOT_PATH . '/.env')) {
     foreach (file(ROOT_PATH . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         if (str_starts_with(trim($line), '#') || !str_contains($line, '=')) continue;
         [$k, $v] = explode('=', $line, 2);
         $_ENV[trim($k)] = trim($v);
     }
+}
+// Inyectar vars de entorno del proceso (Railway, Docker, etc.) en $_ENV.
+// .env (si existe) toma precedencia: solo llenamos lo que falta.
+foreach (getenv() as $k => $v) {
+    if (!isset($_ENV[$k])) $_ENV[$k] = $v;
 }
 
 // ── Session (secure cookies cuando hay HTTPS detrás de proxy) ─────────────────

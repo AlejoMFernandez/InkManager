@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(where.exe gh *)",
+      "Read(//c/Program Files/**)",
+      "Bash(git fetch *)"
+    ]
+  }
+}
