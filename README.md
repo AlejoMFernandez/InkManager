@@ -1,75 +1,136 @@
-# 🖋️ InkManager — Digital Studio System
+<div align="center">
 
-> Sistema de gestión para estudios de tatuaje con **body map 3D interactivo**.
-> Marcá cada tatuaje en su posición exacta sobre un modelo humano rotable construido con Three.js.
+# 🖋️ InkManager
+
+### Digital Studio System para estudios de tatuaje
+
+**Un body map 3D rotable donde marcás cada tatuaje en su posición exacta.**
+Construido en PHP vanilla + Three.js. Sin framework, sin Composer, sin build step.
+
+[![Live demo](https://img.shields.io/badge/▶_Live_demo-inkmanager.up.railway.app-ef4444?style=for-the-badge)](https://inkmanager.up.railway.app)
+[![GitHub](https://img.shields.io/badge/GitHub-AlejoMFernandez/InkManager-181717?style=for-the-badge&logo=github)](https://github.com/AlejoMFernandez/InkManager)
 
 ![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)
 ![Three.js](https://img.shields.io/badge/Three.js-r169-000000?logo=three.js&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind-CDN-06B6D4?logo=tailwindcss&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Railway](https://img.shields.io/badge/Deployed_on-Railway-0B0D0E?logo=railway&logoColor=white)
+
+</div>
+
+<!--
+⬇️ AGREGAR: hero shot del body map 3D acá
+Capturá una pantalla del cliente show con el body map visible + 2-3 markers rojos.
+Guardala en docs/screenshots/hero.png y descomentá la línea de abajo:
+-->
+<!-- ![Hero](docs/screenshots/hero.png) -->
+
+---
+
+## 🎯 Try it now
+
+> **No setup needed.** Entrá, logueate y jugá con el body map 3D.
+
+```
+🌐 https://inkmanager.up.railway.app/login
+📧 admin@inkmanager.com
+🔑 admin123
+```
+
+Después de loguearte, **andá a Clientes → cualquier cliente → click en el cuerpo 3D** para agregar un tatuaje. Ver [`DEMO.md`](./DEMO.md) para el tour completo.
+
+> ⚠️ Free tier de Railway → la primera carga puede tardar ~10s (cold start). Las fotos subidas se borran en cada redeploy.
 
 ---
 
 ## ✨ Features
 
-- **Body Map 3D** — Modelo humano rotable (procedural + GLTF fallback) con raycaster click-to-mark, markers pulsantes persistentes y modal de detalle por tatuaje.
-- **CRM de clientes** — Listado con búsqueda + paginación, ficha con galería de tatuajes, primera visita, Instagram, notas.
-- **Calendario de turnos** — FullCalendar 6 con dark theme custom, drag & drop reagendado, estados con color (agendado / confirmado / hecho / cancelado).
-- **Dashboard** — KPIs con counter animations, hero banner con saludo dinámico, próximos turnos en vivo.
-- **Identidad de marca** — Splash intro animado, tipografía editorial (Bebas Neue + Inter), monograma SVG con stroke-draw animation.
-- **Auth segura** — Sessions con cookies HttpOnly + Secure (HTTPS detection), CSRF tokens, password hashing con bcrypt cost 12.
-- **Upload de fotos** — `finfo` MIME validation, hashed filenames, 5MB limit.
+| Feature | Detalle |
+|---|---|
+| 🧍 **Body Map 3D** | Modelo humano rotable construido con Three.js. Click sobre el cuerpo → marker pulsante rojo persistente. GLTF loader con fallback a humanoid procedural (`CapsuleGeometry` + `MeshPhysicalMaterial`). 4-point studio lighting. |
+| 👤 **CRM de clientes** | Listado paginado con búsqueda fuzzy, ficha individual con galería de tatuajes, historial, Instagram, notas, próximos turnos. |
+| 📅 **Calendario de turnos** | FullCalendar 6 con dark theme custom, drag & drop reagendado vía AJAX, 4 estados con color (agendado / confirmado / hecho / cancelado). |
+| 📊 **Dashboard** | KPIs con counter animations (IntersectionObserver + easing), hero banner con saludo dinámico según hora, próximos turnos en vivo. |
+| 🎨 **Identidad de marca** | Splash intro animado (1× por sesión), tipografía editorial Bebas Neue + Inter, monograma SVG con `stroke-dasharray` animation + ink drop, noise texture inline. |
+| 🔒 **Auth + Security** | Sessions con cookies HttpOnly + Secure (HTTPS detection), CSRF tokens con `hash_equals` timing-safe, password hashing bcrypt cost 12. |
+| 📸 **Upload de fotos** | `finfo` MIME validation real (no solo extensión), hashed filenames, 5MB limit, servidor-side. |
 
 ---
 
 ## 🧱 Stack
 
-| Capa | Tech |
-|------|------|
-| Backend | PHP 8.2 vanilla MVC (sin Composer) |
-| Database | MySQL 8 + PDO prepared statements |
-| Frontend | Tailwind CDN + Three.js r169 (ES modules + importmap) |
-| Calendar | FullCalendar 6 |
-| Routing | Custom regex router en `app/Core/Router.php` |
-| Sin build step. Sin framework. Cero magia. |
+| Capa | Tech | Por qué |
+|------|------|---------|
+| Backend | **PHP 8.2 vanilla MVC** | Sin framework, sin Composer. Router regex custom, base Controller/Model propios. Demuestra fundamentos sin abstracciones. |
+| Database | **MySQL 8** via PDO | Prepared statements en TODO el codebase. Cero string concatenation en queries. |
+| Frontend 3D | **Three.js r169** | ES modules con importmap (sin bundler). |
+| Calendar | **FullCalendar 6** | Drag & drop nativo, AJAX para persistir cambios. |
+| Styling | **Tailwind CDN** + brand stylesheet custom | Sin build step. Tipografía Google Fonts. |
+| Deploy | **Railway** (PHP built-in server + MySQL plugin) | Free tier. CI/CD desde GitHub. |
+
+**Cero build step. Push to deploy. La carpeta `public/` es exactamente lo que sirve.**
 
 ---
 
-## 🚀 Deploy en Railway
+## 🎨 Highlights técnicos
 
-1. Forkeá / cloneá el repo a tu GitHub.
-2. Entrá a [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**.
-3. Una vez creado el servicio, agregá un plugin **MySQL** desde el dashboard de Railway.
-4. En **Variables** del servicio web, agregá:
-   ```
-   APP_ENV=production
-   APP_DEBUG=false
-   SETUP_TOKEN=algun_string_random_largo_acá
-   ```
-   (Las vars `MYSQLHOST`, `MYSQLUSER`, etc. las inyecta Railway automáticamente al linkear el plugin de MySQL.)
-5. Esperá el primer deploy → andá a `https://tu-app.up.railway.app/setup.php?token=TU_SETUP_TOKEN` UNA vez para crear las tablas + admin user.
-6. Login con `admin@inkmanager.com` / `admin123` — **cambiá la contraseña**.
+### Body Map 3D
 
-⚠️ **Filesystem ephemeral**: los uploads de fotos se pierden en cada redeploy en Railway free tier. Para persistencia real, agregá Railway Volumes o un bucket S3/R2.
+- **Procedural humanoid** con `CapsuleGeometry` para extremidades suaves + `MeshPhysicalMaterial` (clearcoat 0.22) para look pulido.
+- **4-point studio lighting**: key warm (0xfff0d0) + fill cool (0x6090ff) + rim red signature (0xff1a0a) + ground.
+- **Inverted-hull outline** via `BackSide` material clone escalado 1.045 — efecto cel-shading sin shader custom.
+- **Race condition resuelto** entre `bodymap.js` (sync scene init) y `markers.js` (async event-driven) con `window.__bodymap.ready` flag + `bodymap:ready` CustomEvent.
+- **Raycaster** detecta intersección con el cuerpo en click, calcula normal de superficie, persiste posición 3D + normal en DB → marker renderizado en la misma posición en próxima visita.
+
+### Brand identity
+
+- **Splash intro** de 1.7s con `sessionStorage` (solo 1ª visita por sesión, no molesta en navegación interna).
+- **Monograma SVG** con `stroke-dasharray` animation (líneas "se dibujan") + ink drop con `inkDrip` keyframe.
+- **Tipografía editorial**: Bebas Neue (display, headings) + Inter (body) desde Google Fonts.
+- **Noise texture** inline SVG en data-URI fijado al body — da grain de estudio sin pedir un asset extra.
+
+### Routing & Auth
+
+- **Regex router** con named capture groups (`{id}` → `(?P<id>[^/]+)`).
+- **Middleware system** simple: `['auth']` en una ruta aplica `Auth::requireAuth()` antes del controller.
+- **CSRF** con `hash_equals` (timing-safe).
+- **BASE_URL auto-detection**: misma codebase funciona en XAMPP subdirectory (`/Tatoo`) y Railway root (`/`).
+
+📖 **¿Te interesa el detalle del deploy?** → [`DEPLOYMENT.md`](./DEPLOYMENT.md) cuenta los 4 problemas que tuvimos que resolver para llevarlo de XAMPP a Railway.
 
 ---
 
 ## 💻 Setup local (XAMPP)
 
 ```bash
-# 1. Cloná en htdocs/Tatoo
-git clone https://github.com/tu-user/inkmanager.git C:/xampp/htdocs/Tatoo
+# 1. Cloná en C:\xampp\htdocs\Tatoo
+git clone https://github.com/AlejoMFernandez/InkManager.git C:/xampp/htdocs/Tatoo
 
-# 2. Copiá el .env y editá si hace falta
+# 2. Copiá el .env de ejemplo
 cp .env.example .env
 
 # 3. Arrancá XAMPP (Apache + MySQL) y andá a:
 http://localhost/Tatoo/setup.php
 
-# 4. Borrá setup.php (o dejalo — en local no expone nada crítico) y entrá:
-http://localhost/Tatoo/login
+# 4. Login en:
+http://localhost/Tatoo/login   # admin@inkmanager.com / admin123
 ```
+
+## 🚀 Deploy en Railway
+
+1. Fork del repo a tu GitHub.
+2. [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**.
+3. Agregá un plugin **MySQL** al proyecto.
+4. En el servicio web → **Variables** → agregá referencia a `MYSQL_URL` apuntando a `${{ MySQL.MYSQL_URL }}`, más:
+   ```
+   APP_ENV=production
+   APP_DEBUG=false
+   SETUP_TOKEN=<algo_random_largo>
+   ```
+5. Esperá el deploy y andá a `https://<tu-app>.up.railway.app/setup.php?token=<TU_SETUP_TOKEN>` (una sola vez).
+6. Login en `/login`.
+
+**Más detalle técnico del deploy en [`DEPLOYMENT.md`](./DEPLOYMENT.md)** — incluyendo Railpack vs Nixpacks, el wrapper de `setup.php` para doc-root mismatch, y por qué `$_ENV` quedaba vacío en PHP built-in server.
 
 ---
 
@@ -88,47 +149,42 @@ http://localhost/Tatoo/login
 │   └── schema.sql      # CREATE TABLE para usuarios, clientes, tatuajes, turnos, estilos
 ├── public/
 │   ├── index.php       # Front controller + static-file pass-through para php -S
-│   ├── assets/
-│   │   ├── css/brand.css   # Brand identity stylesheet
-│   │   ├── js/bodymap.js   # Three.js scene + procedural humanoid + lighting
-│   │   ├── js/markers.js   # Raycaster, markers, modals, AJAX
-│   │   └── models/         # body.glb opcional (fallback procedural si no existe)
-├── nixpacks.toml       # Railway build config
-├── Procfile            # Start command
-└── setup.php           # Instalador idempotente
+│   ├── setup.php       # Wrapper para Railway (doc-root = public/)
+│   └── assets/
+│       ├── css/brand.css   # Brand identity stylesheet
+│       ├── js/bodymap.js   # Three.js scene + procedural humanoid + lighting
+│       ├── js/markers.js   # Raycaster, markers, modals, AJAX
+│       └── models/         # body.glb opcional (fallback procedural si no existe)
+├── index.php           # DirectoryIndex para XAMPP — reenvía a public/index.php
+├── composer.json       # Marker para que Railpack detecte PHP (sin dependencias)
+├── nixpacks.toml       # Build config alternativo
+├── Procfile            # Start command para Railway
+└── setup.php           # Instalador idempotente (token-gated en prod)
 ```
-
----
-
-## 🎨 Highlights técnicos
-
-### Body Map 3D
-- Procedural humanoid con `CapsuleGeometry` + `MeshPhysicalMaterial` (clearcoat 0.22).
-- 4-point studio lighting (key warm + fill cool + rim red signature + ground).
-- Inverted-hull outline effect via `BackSide` material clone (scale 1.045).
-- Race condition resuelto entre `bodymap.js` (sync scene init) y `markers.js` (async event-driven) con `window.__bodymap.ready` + `bodymap:ready` CustomEvent.
-
-### Brand identity
-- Splash intro de 1.7s con `sessionStorage` (solo 1ª visita por sesión).
-- Monograma SVG con `stroke-dasharray` animation + ink drop.
-- Tipografía: Bebas Neue (display) + Inter (body) desde Google Fonts.
-- Background con noise texture inline SVG + radial gradients duales.
-
-### Routing
-- Regex-based router con named capture groups para params (`{id}`).
-- Middleware system simple (`['auth']` aplica `Auth::requireAuth()`).
-- CSRF token comparison con `hash_equals` (timing-safe).
 
 ---
 
 ## 📸 Screenshots
 
-_(Agregá acá GIFs del body map rotando + screenshots del dashboard y login)_
+<!-- Una vez que captures las imágenes en docs/screenshots/, descomentá esto -->
+<!--
+| Login | Dashboard | Body Map 3D |
+|---|---|---|
+| ![Login](docs/screenshots/login.png) | ![Dashboard](docs/screenshots/dashboard.png) | ![Body Map](docs/screenshots/bodymap.gif) |
+-->
+
+_Screenshots y GIF del body map 3D próximamente._
 
 ---
 
 ## 📝 License
 
-MIT — usá esto para tu portfolio, modificalo, vendelo si querés.
+MIT — libre uso, modificación y distribución.
 
-Hecho con 🖋️ por [@tu-handle](https://github.com/tu-handle).
+---
+
+<div align="center">
+
+Hecho con 🖋️ y PHP por [**@AlejoMFernandez**](https://github.com/AlejoMFernandez)
+
+</div>
