@@ -84,18 +84,30 @@ if (isset($_ENV['BASE_URL'])) {
 define('BASE_URL',  $base);
 define('PUBLIC_URL', $public);
 
+// ── i18n: load language strings (reads $_SESSION['lang'], defaults to 'es') ───
+\App\Core\Lang::load();
+
 // ── Routes ────────────────────────────────────────────────────────────────────
 use App\Core\Router;
 
 $router = new Router();
 
+// Language switcher
+$router->get('/lang/{locale}', 'LangController@switch');
+
 // Auth
-$router->get( '/login',  'AuthController@showLogin');
-$router->post('/login',  'AuthController@login');
-$router->get( '/logout', 'AuthController@logout');
+$router->get( '/login',    'AuthController@showLogin');
+$router->post('/login',    'AuthController@login');
+$router->get( '/logout',   'AuthController@logout');
+
+// Studio registration (public)
+$router->get( '/registro', 'StudiosController@registro');
+$router->post('/registro', 'StudiosController@guardarRegistro');
+
+// Landing — public, redirects to dashboard if logged in
+$router->get('/',          'LandingController@index',   []);
 
 // Dashboard
-$router->get('/',          'DashboardController@index', ['auth']);
 $router->get('/dashboard', 'DashboardController@index', ['auth']);
 
 // Clientes
@@ -119,13 +131,78 @@ $router->post('/turnos/{id}/estado',        'TurnosController@cambiarEstado', ['
 
 // API Turnos (JSON — FullCalendar + drag & drop)
 $router->get( '/api/turnos',                'TurnosController@feed',         ['auth']);
-$router->post('/api/turnos/{id}/reagendar', 'TurnosController@reagendar',    ['auth']);
-$router->post('/api/turnos/{id}/estado',    'TurnosController@cambiarEstado',['auth']);
+$router->post('/api/turnos',                'TurnosController@crearRapido',  ['auth']);
+$router->post('/api/turnos/{id}/reagendar',  'TurnosController@reagendar',    ['auth']);
+$router->post('/api/turnos/{id}/estado',     'TurnosController@cambiarEstado',['auth']);
+$router->post('/api/turnos/{id}/notificar',  'TurnosController@notificar',    ['auth']);
+
+// API Clientes
+$router->post('/api/clientes/{id}/avatar',                         'ClientesController@uploadAvatar',  ['auth']);
+
+// API Etiquetas
+$router->get( '/api/etiquetas',                                    'EtiquetasController@index',         ['auth']);
+$router->post('/api/etiquetas',                                    'EtiquetasController@crear',         ['auth']);
+$router->post('/api/etiquetas/{id}/editar',                        'EtiquetasController@editar',        ['auth']);
+$router->post('/api/etiquetas/{id}/borrar',                        'EtiquetasController@borrar',        ['auth']);
+$router->post('/api/clientes/{cliente_id}/etiquetas/{id}/asignar', 'EtiquetasController@asignar',       ['auth']);
+$router->post('/api/clientes/{cliente_id}/etiquetas/{id}/quitar',  'EtiquetasController@quitar',        ['auth']);
 
 // API Tatuajes (JSON — usada por markers.js vía Fetch)
-$router->post('/api/tatuajes',                        'TatuajesController@store',   ['auth']);
-$router->post('/api/tatuajes/{id}/actualizar',        'TatuajesController@update',  ['auth']);
-$router->post('/api/tatuajes/{id}/borrar',            'TatuajesController@destroy', ['auth']);
+$router->post('/api/tatuajes',                        'TatuajesController@store',      ['auth']);
+$router->post('/api/tatuajes/{id}/actualizar',        'TatuajesController@update',     ['auth']);
+$router->post('/api/tatuajes/{id}/foto',              'TatuajesController@uploadFoto', ['auth']);
+$router->post('/api/tatuajes/{id}/borrar',            'TatuajesController@destroy',    ['auth']);
+
+// API Notificaciones (JSON — campana en el header)
+$router->get('/api/notificaciones',                   'NotificacionesController@feed',  ['auth']);
+
+// API Búsqueda global (JSON — command palette ⌘K)
+$router->get('/api/busqueda',                         'BusquedaController@search',      ['auth']);
+
+// Caja / Cobros
+$router->get( '/caja',              'CajaController@index',   ['auth']);
+$router->get( '/caja/nuevo',        'CajaController@nuevo',   ['auth']);
+$router->post('/caja/nuevo',        'CajaController@guardar', ['auth']);
+$router->post('/caja/{id}/borrar',  'CajaController@borrar',  ['auth']);
+
+// Galería de tatuajes
+$router->get( '/galeria',             'GaleriaController@index',   ['auth']);
+$router->get( '/galeria/subir',       'GaleriaController@subir',   ['auth']);
+$router->post('/galeria/subir',       'GaleriaController@guardar', ['auth']);
+$router->post('/galeria/{id}/borrar', 'GaleriaController@borrar',  ['auth']);
+
+// Staff (owner only)
+$router->get( '/staff',               'StaffController@index',    ['auth', 'owner']);
+$router->get( '/staff/nuevo',         'StaffController@nuevo',    ['auth', 'owner']);
+$router->post('/staff/nuevo',         'StaffController@guardar',  ['auth', 'owner']);
+$router->get( '/staff/{id}/editar',   'StaffController@editar',   ['auth', 'owner']);
+$router->post('/staff/{id}/editar',   'StaffController@actualizar',['auth','owner']);
+$router->post('/staff/{id}/borrar',   'StaffController@borrar',   ['auth', 'owner']);
+
+// Presupuestos
+$router->get( '/presupuestos',                  'PresupuestosController@index',         ['auth']);
+$router->get( '/presupuestos/nuevo',            'PresupuestosController@nuevo',         ['auth']);
+$router->post('/presupuestos/nuevo',            'PresupuestosController@guardar',       ['auth']);
+$router->get( '/presupuestos/{id}',             'PresupuestosController@ver',           ['auth']);
+$router->get( '/presupuestos/{id}/editar',      'PresupuestosController@editar',        ['auth']);
+$router->post('/presupuestos/{id}/editar',      'PresupuestosController@actualizar',    ['auth']);
+$router->post('/presupuestos/{id}/borrar',      'PresupuestosController@borrar',        ['auth']);
+$router->post('/presupuestos/{id}/estado',      'PresupuestosController@cambiarEstado', ['auth']);
+$router->get( '/presupuestos/{id}/imprimir',    'PresupuestosController@imprimir',      ['auth']);
+
+// Reportes
+$router->get('/reportes', 'ReportesController@index', ['auth']);
+
+// Exports
+$router->get('/export/clientes',        'ExportController@clientes',      ['auth']);
+$router->get('/export/turnos',          'ExportController@turnos',        ['auth']);
+$router->get('/clientes/{id}/imprimir', 'ExportController@fichaCliente',  ['auth']);
+
+// Configuración
+$router->get( '/configuracion',          'SettingsController@index',         ['auth']);
+$router->post('/configuracion/estudio',  'SettingsController@updateStudio',  ['auth']);
+$router->post('/configuracion/perfil',   'SettingsController@updateProfile',  ['auth']);
+$router->post('/configuracion/password', 'SettingsController@updatePassword', ['auth']);
 
 // ── Dispatch ──────────────────────────────────────────────────────────────────
 $router->dispatch();

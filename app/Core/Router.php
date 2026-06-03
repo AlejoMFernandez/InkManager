@@ -63,9 +63,12 @@ class Router
 
     private function runMiddleware(string $mw): void
     {
-        if ($mw === 'auth') {
-            Auth::requireAuth();
-        }
+        match ($mw) {
+            'auth'  => Auth::requireAuth(),
+            'owner' => Auth::requireOwner(),
+            'admin' => Auth::requireAdmin(),
+            default => null,
+        };
     }
 
     private function call(string $handler, array $params): void

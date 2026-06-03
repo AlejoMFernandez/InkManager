@@ -20,3 +20,6 @@ Thumbs.db
 *.sql.bak
 *.sqlite
 *.sqlite3
+
+# ── Claude Code context ────────────────────────────
+.claude/

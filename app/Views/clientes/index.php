@@ -3,33 +3,76 @@
 <!-- Header row -->
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 page-enter">
     <div>
-        <p class="brand-tagline mb-1">// CRM</p>
-        <h2 class="section-heading">Clientes <span class="accent">/ <?= number_format($total) ?></span></h2>
+        <p class="brand-tagline mb-1"><?= __('client.crm_tag') ?></p>
+        <h2 class="section-heading"><?= __('nav.clients') ?> <span class="accent">/ <?= number_format($total) ?></span></h2>
     </div>
-    <a href="<?= BASE_URL ?>/clientes/nuevo"
-       class="btn-glow inline-flex items-center gap-2 px-4 py-2
-              bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600
-              text-white text-sm font-semibold rounded-lg transition-all active:scale-95">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-        </svg>
-        Nuevo cliente
-    </a>
+    <div class="flex items-center gap-2">
+        <a href="<?= BASE_URL ?>/export/clientes"
+           title="Descargar CSV"
+           class="inline-flex items-center gap-1.5 px-3 py-2 text-sm
+                  bg-gray-800 border border-gray-700 hover:border-gray-600
+                  text-gray-400 hover:text-white rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            CSV
+        </a>
+        <a href="<?= BASE_URL ?>/clientes/nuevo"
+           class="btn-glow inline-flex items-center gap-2 px-4 py-2
+                  bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600
+                  text-white text-sm font-semibold rounded-lg transition-all active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            <?= __('client.new') ?>
+        </a>
+    </div>
 </div>
 
-<!-- Search -->
+<!-- Search + filter row -->
 <form method="GET" action="<?= BASE_URL ?>/clientes" class="mb-4">
-    <div class="relative max-w-sm">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
-             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
-        </svg>
-        <input type="search" name="q" value="<?= htmlspecialchars($term) ?>"
-               placeholder="Buscar por nombre o Instagram…"
-               class="w-full pl-9 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg
-                      text-sm text-white placeholder-gray-600
-                      focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50">
+    <div class="flex flex-wrap gap-2 items-center">
+        <!-- Text search -->
+        <div class="relative flex-1 min-w-[200px] max-w-sm">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+            </svg>
+            <input type="search" name="q" value="<?= htmlspecialchars($term) ?>"
+                   placeholder="<?= htmlspecialchars(__('client.search_ph')) ?>"
+                   class="w-full pl-9 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg
+                          text-sm text-white placeholder-gray-600
+                          focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50">
+        </div>
+
+        <!-- Tag filter -->
+        <?php if (!empty($etiquetas)): ?>
+        <div class="flex items-center gap-1.5 flex-wrap">
+            <?php if ($etiquetaId > 0): ?>
+            <a href="<?= BASE_URL ?>/clientes<?= $term ? '?q=' . urlencode($term) : '' ?>"
+               class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg
+                      bg-gray-800 text-gray-400 hover:text-white text-xs border border-gray-700
+                      transition-colors">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                </svg>
+                <?= __('tag.filter') ?>
+            </a>
+            <?php endif; ?>
+            <?php foreach ($etiquetas as $et): ?>
+            <a href="?<?= http_build_query(array_filter(['q' => $term, 'etiqueta' => $et['id'] === $etiquetaId ? 0 : $et['id']])) ?>"
+               class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border
+                      transition-all hover:opacity-80 <?= $et['id'] === $etiquetaId ? 'ring-2 ring-white/20' : '' ?>"
+               style="color:<?= htmlspecialchars($et['color']) ?>;
+                      background:<?= htmlspecialchars($et['color']) ?>1a;
+                      border-color:<?= htmlspecialchars($et['color']) ?>40;">
+                <?= htmlspecialchars($et['nombre']) ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
     </div>
 </form>
 
@@ -39,11 +82,11 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b border-gray-800">
-                    <th class="text-left px-4 py-3 text-gray-500 font-medium">Nombre</th>
+                    <th class="text-left px-4 py-3 text-gray-500 font-medium"><?= __('client.col_name') ?></th>
                     <th class="text-left px-4 py-3 text-gray-500 font-medium hidden sm:table-cell">Instagram</th>
-                    <th class="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">Teléfono</th>
-                    <th class="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">Primera visita</th>
-                    <th class="text-center px-4 py-3 text-gray-500 font-medium">Tatuajes</th>
+                    <th class="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell"><?= __('client.col_phone') ?></th>
+                    <th class="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell"><?= __('client.col_first_visit') ?></th>
+                    <th class="text-center px-4 py-3 text-gray-500 font-medium"><?= __('client.col_tattoos') ?></th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -58,12 +101,12 @@
                                      0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
                         </svg>
                         <p class="text-gray-600">
-                            <?= $term !== '' ? 'Sin resultados para "' . htmlspecialchars($term) . '"' : 'No hay clientes todavía.' ?>
+                            <?= $term !== '' ? htmlspecialchars(__('client.no_results_pre')) . ' "' . htmlspecialchars($term) . '"' : __('client.empty') ?>
                         </p>
                         <?php if ($term === ''): ?>
                         <a href="<?= BASE_URL ?>/clientes/nuevo"
                            class="mt-3 inline-block text-sm text-red-400 hover:text-red-300">
-                            + Agregar el primero
+                            <?= __('client.add_first') ?>
                         </a>
                         <?php endif; ?>
                     </td>
@@ -73,12 +116,18 @@
                 <tr class="table-row-hover hover:bg-gray-800/50 transition-colors">
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-2.5">
+                            <?php if (!empty($c['foto_perfil'])): ?>
+                            <img src="<?= PUBLIC_URL ?>/assets/uploads/avatars/<?= htmlspecialchars($c['foto_perfil']) ?>"
+                                 alt=""
+                                 class="w-7 h-7 rounded-full flex-shrink-0 object-cover border border-gray-700">
+                            <?php else: ?>
                             <div class="w-7 h-7 rounded-full flex-shrink-0
                                         bg-gradient-to-br from-red-600/60 to-red-900/60
                                         border border-red-500/20 flex items-center justify-center
                                         text-xs font-bold text-red-300">
                                 <?= htmlspecialchars(strtoupper(mb_substr($c['nombre'], 0, 1))) ?>
                             </div>
+                            <?php endif; ?>
                             <div>
                         <a href="<?= BASE_URL ?>/clientes/<?= $c['id'] ?>"
                            class="font-medium text-white hover:text-red-400 transition-colors">
@@ -89,6 +138,24 @@
                             <?= htmlspecialchars($c['notas']) ?>
                         </p>
                         <?php endif; ?>
+                        <?php
+                        // Render tag badges from GROUP_CONCAT columns
+                        if (!empty($c['tag_ids'])) {
+                            $tagIds     = explode(',',  $c['tag_ids']);
+                            $tagNombres = explode('||', $c['tag_nombres'] ?? '');
+                            $tagColores = explode(',',  $c['tag_colores'] ?? '');
+                        ?>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            <?php foreach ($tagIds as $ti => $tid): ?>
+                            <span class="inline-block px-1.5 py-px rounded-full text-[10px] font-medium border"
+                                  style="color:<?= htmlspecialchars($tagColores[$ti] ?? '#ef4444') ?>;
+                                         background:<?= htmlspecialchars($tagColores[$ti] ?? '#ef4444') ?>1a;
+                                         border-color:<?= htmlspecialchars($tagColores[$ti] ?? '#ef4444') ?>40;">
+                                <?= htmlspecialchars($tagNombres[$ti] ?? '') ?>
+                            </span>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php } ?>
                             </div><!-- /name block -->
                         </div><!-- /avatar row -->
                     </td>
@@ -123,7 +190,7 @@
                         <div class="flex items-center justify-end gap-1">
                             <!-- Ver ficha -->
                             <a href="<?= BASE_URL ?>/clientes/<?= $c['id'] ?>"
-                               title="Ver ficha"
+                               title="<?= htmlspecialchars(__('client.view_file')) ?>"
                                class="p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 rounded-md transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -133,7 +200,7 @@
                             </a>
                             <!-- Editar -->
                             <a href="<?= BASE_URL ?>/clientes/<?= $c['id'] ?>/editar"
-                               title="Editar"
+                               title="<?= htmlspecialchars(__('btn.edit')) ?>"
                                class="p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 rounded-md transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -144,10 +211,10 @@
                             <!-- Borrar -->
                             <form method="POST"
                                   action="<?= BASE_URL ?>/clientes/<?= $c['id'] ?>/borrar"
-                                  onsubmit="return confirm('¿Eliminar a <?= htmlspecialchars(addslashes($c['nombre'])) ?>? Se borrarán también sus tatuajes y turnos.')">
+                                  onsubmit="return confirm('<?= htmlspecialchars(__('client.delete_confirm', ['name' => addslashes($c['nombre'])])) ?>')">
                                 <input type="hidden" name="_csrf" value="<?= \App\Core\Auth::csrfToken() ?>">
                                 <button type="submit"
-                                        title="Eliminar"
+                                        title="<?= htmlspecialchars(__('btn.delete')) ?>"
                                         class="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -174,12 +241,16 @@
     <?php if ($pages > 1): ?>
     <div class="px-4 py-3 border-t border-gray-800 flex items-center justify-between text-sm">
         <p class="text-gray-500 text-xs">
-            Mostrando <?= number_format(($page - 1) * 20 + 1) ?>–<?= number_format(min($page * 20, $total)) ?>
-            de <?= number_format($total) ?>
+            <?= __('common.showing') ?> <?= number_format(($page - 1) * 20 + 1) ?>–<?= number_format(min($page * 20, $total)) ?>
+            <?= __('common.of') ?> <?= number_format($total) ?>
         </p>
         <div class="flex items-center gap-1">
+            <?php
+            $pageBase = '?' . http_build_query(array_filter(['q' => $term ?: null, 'etiqueta' => $etiquetaId ?: null]));
+            $pageSep  = str_contains($pageBase, '?') && strlen($pageBase) > 1 ? '&' : '?';
+            ?>
             <?php if ($page > 1): ?>
-            <a href="?q=<?= urlencode($term) ?>&page=<?= $page - 1 ?>"
+            <a href="<?= $pageBase ?><?= $pageSep ?>page=<?= $page - 1 ?>"
                class="px-2.5 py-1 rounded-md bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700">←</a>
             <?php endif; ?>
 
@@ -187,7 +258,7 @@
             $from = max(1, $page - 2);
             $to   = min($pages, $page + 2);
             for ($p = $from; $p <= $to; $p++): ?>
-            <a href="?q=<?= urlencode($term) ?>&page=<?= $p ?>"
+            <a href="<?= $pageBase ?><?= $pageSep ?>page=<?= $p ?>"
                class="px-2.5 py-1 rounded-md text-sm
                       <?= $p === $page ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700' ?>">
                 <?= $p ?>
@@ -195,7 +266,7 @@
             <?php endfor; ?>
 
             <?php if ($page < $pages): ?>
-            <a href="?q=<?= urlencode($term) ?>&page=<?= $page + 1 ?>"
+            <a href="<?= $pageBase ?><?= $pageSep ?>page=<?= $page + 1 ?>"
                class="px-2.5 py-1 rounded-md bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700">→</a>
             <?php endif; ?>
         </div>

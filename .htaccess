@@ -1,9 +1,8 @@
 Options -MultiViews -Indexes
 RewriteEngine On
 
-# Serve real files (assets) directly
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
+# Serve real files (assets) directly — directories always route through PHP
+RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
 # Route everything through public/index.php

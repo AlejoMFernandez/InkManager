@@ -21,14 +21,33 @@ class Auth
         return isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
     }
 
+    public static function studioId(): int
+    {
+        return isset($_SESSION['studio_id']) ? (int) $_SESSION['studio_id'] : 0;
+    }
+
+    public static function studio(): ?array
+    {
+        return $_SESSION['auth_studio'] ?? null;
+    }
+
+    public static function rol(): string
+    {
+        return $_SESSION['auth_user']['rol'] ?? 'owner';
+    }
+
     public static function login(array $user): void
     {
         session_regenerate_id(true);
+        $sid = (int) ($user['studio_id'] ?? 0);
         $_SESSION['user_id']   = $user['id'];
+        $_SESSION['studio_id'] = $sid;
         $_SESSION['auth_user'] = [
-            'id'     => $user['id'],
-            'nombre' => $user['nombre'],
-            'email'  => $user['email'],
+            'id'        => $user['id'],
+            'nombre'    => $user['nombre'],
+            'email'     => $user['email'],
+            'rol'       => $user['rol']       ?? 'owner',
+            'studio_id' => $sid,
         ];
     }
 
@@ -47,6 +66,26 @@ class Auth
     {
         if (!self::check()) {
             header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+    }
+
+    /** Allows only the studio owner. Redirects everyone else to /dashboard. */
+    public static function requireOwner(): void
+    {
+        self::requireAuth();
+        if (self::rol() !== 'owner') {
+            header('Location: ' . BASE_URL . '/dashboard');
+            exit;
+        }
+    }
+
+    /** Allow owner and admin; redirect staff to /dashboard. */
+    public static function requireAdmin(): void
+    {
+        self::requireAuth();
+        if (!in_array(self::rol(), ['owner', 'admin'], true)) {
+            header('Location: ' . BASE_URL . '/dashboard');
             exit;
         }
     }

@@ -215,7 +215,15 @@ $csrf = Auth::csrfToken();
                 </form>
             </div>
 
-            <p class="text-center text-gray-700 text-xs mt-6 brand-tagline">
+            <p class="text-center text-xs text-gray-600 mt-5">
+                ¿No tenés cuenta?
+                <a href="<?= BASE_URL ?>/registro"
+                   class="text-red-400 hover:text-red-300 transition-colors">
+                    Crear estudio gratis
+                </a>
+            </p>
+
+            <p class="text-center text-gray-700 text-xs mt-4 brand-tagline">
                 © <?= date('Y') ?> InkManager · All Rights Reserved
             </p>
         </div>

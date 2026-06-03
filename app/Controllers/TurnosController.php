@@ -8,13 +8,15 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Models\Turno;
 use App\Models\Cliente;
+use App\Services\WhatsAppService;
 
 class TurnosController extends Controller
 {
     /** GET /turnos — vista calendario */
     public function index(array $params = []): void
     {
-        $this->render('turnos.index');
+        $clientes = (new Cliente())->all('nombre', 'ASC');
+        $this->render('turnos.index', compact('clientes'));
     }
 
     /** GET /api/turnos?start=...&end=... — feed JSON para FullCalendar */
@@ -58,7 +60,20 @@ class TurnosController extends Controller
             $this->redirect('turnos/nuevo');
         }
 
-        $id = (new Turno())->crear($_POST);
+        $model = new Turno();
+        $id    = $model->crear($_POST);
+
+        // WhatsApp: confirmación automática al agendar
+        $turno = $model->conCliente($id);
+        if ($turno && !empty($turno['cliente_telefono'])) {
+            (new WhatsAppService())->confirmacion(
+                $turno['cliente_telefono'],
+                $turno['cliente_nombre'],
+                $turno['fecha_inicio'],
+                (int) $turno['duracion_min']
+            );
+        }
+
         $this->flash('success', 'Turno agendado correctamente.');
         $this->redirect("turnos/{$id}");
     }
@@ -116,6 +131,35 @@ class TurnosController extends Controller
         $this->redirect('turnos');
     }
 
+    /** POST /api/turnos — crear turno rápido desde calendario (JSON response) */
+    public function crearRapido(array $params = []): void
+    {
+        if (!Auth::verifyCsrf()) {
+            $this->json(['success' => false, 'error' => 'Token inválido.'], 403);
+        }
+
+        $errors = $this->validar($_POST);
+        if ($errors) {
+            $this->json(['success' => false, 'error' => implode(' ', $errors)], 422);
+        }
+
+        $model = new Turno();
+        $id    = $model->crear($_POST);
+        $turno = $model->conCliente($id);
+
+        if ($turno && !empty($turno['cliente_telefono'])) {
+            (new WhatsAppService())->confirmacion(
+                $turno['cliente_telefono'],
+                $turno['cliente_nombre'],
+                $turno['fecha_inicio'],
+                (int) $turno['duracion_min']
+            );
+        }
+
+        $event = $turno ? $this->toCalendarEvent($turno) : null;
+        $this->json(['success' => true, 'event' => $event]);
+    }
+
     /** POST /api/turnos/{id}/reagendar — drag & drop desde FullCalendar */
     public function reagendar(array $params = []): void
     {
@@ -139,21 +183,88 @@ class TurnosController extends Controller
         $isJson = str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json')
                || str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'application/json');
 
+        $model  = new Turno();
+        $turnId = (int) $params['id'];
+
         if ($isJson) {
             if (!Auth::verifyCsrf()) { $this->json(['success'=>false,'error'=>'Token inválido.'],403); }
             $body   = json_decode(file_get_contents('php://input'), true) ?? [];
             $estado = $body['estado'] ?? '';
-            $ok     = (new Turno())->cambiarEstado((int)$params['id'], $estado);
+            $ok     = $model->cambiarEstado($turnId, $estado);
+            if ($ok) $this->notificarCambioEstado($model, $turnId, $estado);
             $this->json(['success' => $ok]);
         } else {
             if (!Auth::verifyCsrf()) { $this->flash('error','Token inválido.'); $this->redirect('turnos'); }
-            (new Turno())->cambiarEstado((int)$params['id'], $_POST['estado'] ?? '');
+            $estado = $_POST['estado'] ?? '';
+            $model->cambiarEstado($turnId, $estado);
+            $this->notificarCambioEstado($model, $turnId, $estado);
             $this->flash('success', 'Estado actualizado.');
-            $this->redirect('turnos/' . $params['id']);
+            $this->redirect('turnos/' . $turnId);
         }
     }
 
+    /** POST /api/turnos/{id}/notificar — recordatorio manual desde la ficha */
+    public function notificar(array $params = []): void
+    {
+        header('Content-Type: application/json');
+
+        if (!Auth::verifyCsrf()) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'error' => 'Token inválido.']);
+            return;
+        }
+
+        $turno = (new Turno())->conCliente((int) $params['id']);
+        if (!$turno) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => 'Turno no encontrado.']);
+            return;
+        }
+        if (empty($turno['cliente_telefono'])) {
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'error' => 'El cliente no tiene número de teléfono cargado.']);
+            return;
+        }
+
+        $ws = new WhatsAppService();
+        if (!$ws->isEnabled()) {
+            http_response_code(503);
+            echo json_encode([
+                'ok'    => false,
+                'error' => 'WhatsApp no configurado. Agregá TWILIO_SID, TWILIO_TOKEN y TWILIO_FROM en el archivo .env.',
+            ]);
+            return;
+        }
+
+        $sent = $ws->recordatorio(
+            $turno['cliente_telefono'],
+            $turno['cliente_nombre'],
+            $turno['fecha_inicio'],
+            (int) $turno['duracion_min']
+        );
+
+        echo json_encode([
+            'ok'    => $sent,
+            'error' => $sent ? null : 'Twilio no pudo entregar el mensaje. Verificá las credenciales.',
+        ]);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /** Envía WhatsApp al cambiar a 'confirmado' o 'cancelado' (silencioso). */
+    private function notificarCambioEstado(Turno $model, int $id, string $estado): void
+    {
+        if (!in_array($estado, ['confirmado', 'cancelado'], true)) return;
+        $turno = $model->conCliente($id);
+        if ($turno && !empty($turno['cliente_telefono'])) {
+            (new WhatsAppService())->estadoCambiado(
+                $turno['cliente_telefono'],
+                $turno['cliente_nombre'],
+                $estado,
+                $turno['fecha_inicio']
+            );
+        }
+    }
 
     private function toCalendarEvent(array $t): array
     {
@@ -176,11 +287,12 @@ class TurnosController extends Controller
             'backgroundColor' => $bg,
             'borderColor'     => $border,
             'extendedProps'   => [
-                'estado'      => $t['estado'],
-                'duracion'    => $t['duracion_min'],
-                'sena'        => $t['sena'],
-                'notas'       => $t['notas'],
-                'cliente_id'  => $t['cliente_id'],
+                'estado'         => $t['estado'],
+                'duracion'       => $t['duracion_min'],
+                'sena'           => $t['sena'],
+                'notas'          => $t['notas'],
+                'cliente_id'     => $t['cliente_id'],
+                'cliente_nombre' => $t['cliente_nombre'],
             ],
         ];
     }

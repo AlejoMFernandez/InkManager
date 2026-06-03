@@ -26,14 +26,14 @@ $estados = ['agendado','confirmado','hecho','cancelado'];
 <div class="max-w-xl">
     <!-- Breadcrumb -->
     <div class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <a href="<?= BASE_URL ?>/turnos" class="hover:text-white transition-colors">Turnos</a>
+        <a href="<?= BASE_URL ?>/turnos" class="hover:text-white transition-colors"><?= __('nav.appointments') ?></a>
         <span>/</span>
-        <span class="text-gray-300"><?= $isEdit ? 'Editar' : 'Nuevo' ?></span>
+        <span class="text-gray-300"><?= $isEdit ? __('btn.edit') : __('btn.new') ?></span>
     </div>
 
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
         <h2 class="text-lg font-semibold text-white mb-6">
-            <?= $isEdit ? 'Editar turno' : 'Nuevo turno' ?>
+            <?= $isEdit ? __('appointment.edit') : __('appointment.new') ?>
         </h2>
 
         <form method="POST" action="<?= $action ?>">
@@ -44,12 +44,12 @@ $estados = ['agendado','confirmado','hecho','cancelado'];
                 <!-- Cliente -->
                 <div>
                     <label for="cliente_id" class="block text-xs font-medium text-gray-400 mb-1.5">
-                        Cliente <span class="text-red-500">*</span>
+                        <?= __('field.client') ?> <span class="text-red-500">*</span>
                     </label>
                     <select id="cliente_id" name="cliente_id" required
                             class="w-full px-3.5 py-2.5 bg-gray-800 border border-gray-700 rounded-lg
                                    text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600/50">
-                        <option value="">Seleccioná un cliente…</option>
+                        <option value=""><?= htmlspecialchars(__('field.client_ph')) ?></option>
                         <?php foreach ($clientes as $c): ?>
                         <option value="<?= $c['id'] ?>"
                             <?= ((int)($old['cliente_id'] ?? $turno['cliente_id'] ?? $clienteIdPre)) === (int)$c['id'] ? 'selected' : '' ?>>
@@ -64,7 +64,7 @@ $estados = ['agendado','confirmado','hecho','cancelado'];
                     <!-- Fecha y hora -->
                     <div class="col-span-2 sm:col-span-1">
                         <label for="fecha_inicio" class="block text-xs font-medium text-gray-400 mb-1.5">
-                            Fecha y hora <span class="text-red-500">*</span>
+                            <?= __('field.datetime') ?> <span class="text-red-500">*</span>
                         </label>
                         <input type="datetime-local" id="fecha_inicio" name="fecha_inicio"
                                required
@@ -77,7 +77,7 @@ $estados = ['agendado','confirmado','hecho','cancelado'];
                     <!-- Duración -->
                     <div class="col-span-2 sm:col-span-1">
                         <label for="duracion_min" class="block text-xs font-medium text-gray-400 mb-1.5">
-                            Duración (minutos)
+                            <?= __('field.duration') ?>
                         </label>
                         <select id="duracion_min" name="duracion_min"
                                 class="w-full px-3.5 py-2.5 bg-gray-800 border border-gray-700 rounded-lg
@@ -95,14 +95,14 @@ $estados = ['agendado','confirmado','hecho','cancelado'];
 
                     <!-- Estado -->
                     <div>
-                        <label for="estado" class="block text-xs font-medium text-gray-400 mb-1.5">Estado</label>
+                        <label for="estado" class="block text-xs font-medium text-gray-400 mb-1.5"><?= __('field.status') ?></label>
                         <select id="estado" name="estado"
                                 class="w-full px-3.5 py-2.5 bg-gray-800 border border-gray-700 rounded-lg
                                        text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600/50">
                             <?php foreach ($estados as $e): ?>
                             <option value="<?= $e ?>"
                                 <?= ($old['estado'] ?? $turno['estado'] ?? 'agendado') === $e ? 'selected' : '' ?>>
-                                <?= ucfirst($e) ?>
+                                <?= htmlspecialchars(__('status.' . $e)) ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
@@ -110,7 +110,7 @@ $estados = ['agendado','confirmado','hecho','cancelado'];
 
                     <!-- Seña -->
                     <div>
-                        <label for="sena" class="block text-xs font-medium text-gray-400 mb-1.5">Seña (ARS)</label>
+                        <label for="sena" class="block text-xs font-medium text-gray-400 mb-1.5"><?= __('field.deposit_ars') ?></label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
                             <input type="number" id="sena" name="sena"
@@ -126,25 +126,25 @@ $estados = ['agendado','confirmado','hecho','cancelado'];
 
                 <!-- Notas -->
                 <div>
-                    <label for="notas" class="block text-xs font-medium text-gray-400 mb-1.5">Notas</label>
+                    <label for="notas" class="block text-xs font-medium text-gray-400 mb-1.5"><?= __('field.notes') ?></label>
                     <textarea id="notas" name="notas" rows="2"
                               class="w-full px-3.5 py-2.5 bg-gray-800 border border-gray-700 rounded-lg
                                      text-white text-sm placeholder-gray-600 resize-none
                                      focus:outline-none focus:ring-2 focus:ring-red-600/50"
-                              placeholder="Referencias, zona, observaciones…"><?= $val('notas') ?></textarea>
+                              placeholder="<?= htmlspecialchars(__('common.notes_ph')) ?>"><?= $val('notas') ?></textarea>
                 </div>
             </div>
 
             <div class="flex items-center justify-between mt-6 pt-5 border-t border-gray-800">
                 <a href="<?= BASE_URL ?>/turnos"
-                   class="text-sm text-gray-400 hover:text-white transition-colors">← Cancelar</a>
+                   class="text-sm text-gray-400 hover:text-white transition-colors"><?= __('btn.cancel') ?></a>
                 <button type="submit"
                         class="btn-glow px-5 py-2.5
                                bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600
                                text-white text-sm font-semibold rounded-lg
                                active:scale-95 transition-all
                                focus:outline-none focus:ring-2 focus:ring-red-500/50">
-                    <?= $isEdit ? 'Guardar cambios' : 'Agendar turno' ?>
+                    <?= $isEdit ? __('btn.save_changes') : __('appointment.schedule_btn') ?>
                 </button>
             </div>
         </form>
@@ -153,14 +153,14 @@ $estados = ['agendado','confirmado','hecho','cancelado'];
     <!-- Danger zone (solo editar) -->
     <?php if ($isEdit): ?>
     <div class="mt-4 bg-gray-900 border border-red-900/30 rounded-xl p-5">
-        <h3 class="text-sm font-semibold text-red-400 mb-2">Zona peligrosa</h3>
+        <h3 class="text-sm font-semibold text-red-400 mb-2"><?= __('common.danger_zone') ?></h3>
         <form method="POST" action="<?= BASE_URL ?>/turnos/<?= $turno['id'] ?>/borrar"
-              onsubmit="return confirm('¿Eliminar este turno?')">
+              onsubmit="return confirm('<?= htmlspecialchars(__('appointment.delete_confirm')) ?>')">
             <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf) ?>">
             <button type="submit"
                     class="px-4 py-2 border border-red-800 text-red-400 hover:bg-red-600/10
                            text-sm rounded-lg transition-colors">
-                Eliminar turno
+                <?= __('appointment.delete_btn') ?>
             </button>
         </form>
     </div>

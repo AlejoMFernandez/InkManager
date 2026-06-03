@@ -48,6 +48,9 @@ class TatuajesController extends Controller
             'sesiones_totales' => $_POST['sesiones_totales'] ?? 1,
             'sesiones_hechas'  => $_POST['sesiones_hechas']  ?? 0,
             'notas'            => $_POST['notas']            ?? null,
+            'tamano'           => $_POST['tamano']           ?? 'm',
+            'zona'             => $_POST['zona']             ?? null,
+            'tinta'            => $_POST['tinta']            ?? 'negro',
         ];
 
         $model = new Tatuaje();
@@ -84,6 +87,9 @@ class TatuajesController extends Controller
             'sesiones_totales' => $_POST['sesiones_totales'] ?? 1,
             'sesiones_hechas'  => $_POST['sesiones_hechas']  ?? 0,
             'notas'            => $_POST['notas']            ?? null,
+            'tamano'           => $_POST['tamano']           ?? 'm',
+            'zona'             => $_POST['zona']             ?? null,
+            'tinta'            => $_POST['tinta']            ?? 'negro',
         ];
 
         if ($fotoPath !== null) {
@@ -96,6 +102,40 @@ class TatuajesController extends Controller
         }
 
         $model->actualizar($id, $data);
+        $this->json(['success' => true, 'tatuaje' => $this->enriched($model->find($id))]);
+    }
+
+    /** POST /api/tatuajes/{id}/foto — subir o reemplazar sólo la foto */
+    public function uploadFoto(array $params = []): void
+    {
+        if (!Auth::verifyCsrf()) {
+            $this->json(['success' => false, 'error' => 'Token inválido.'], 403);
+        }
+
+        $model  = new Tatuaje();
+        $id     = (int) $params['id'];
+        $actual = $model->find($id);
+        if (!$actual) {
+            $this->json(['success' => false, 'error' => 'Tatuaje no encontrado.'], 404);
+        }
+
+        try {
+            $fotoPath = $this->handleUpload();
+        } catch (\Exception $e) {
+            $this->json(['success' => false, 'error' => $e->getMessage()], 422);
+        }
+
+        if ($fotoPath === null) {
+            $this->json(['success' => false, 'error' => 'No se recibió ninguna foto.'], 422);
+        }
+
+        // Borrar foto anterior si existe
+        if ($actual['foto_path']) {
+            $old = PUBLIC_PATH . '/assets/uploads/' . $actual['foto_path'];
+            if (file_exists($old)) @unlink($old);
+        }
+
+        $model->updateFoto($id, $fotoPath);
         $this->json(['success' => true, 'tatuaje' => $this->enriched($model->find($id))]);
     }
 
